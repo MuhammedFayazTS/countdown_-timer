@@ -1,14 +1,16 @@
 import { useState } from "react";
-import { Page, Layout, Text, AlphaCard } from "@shopify/polaris";
+import { Page, Layout, Text, Card } from "@shopify/polaris";
 import { TitleBar } from "@shopify/app-bridge-react";
 import { useTranslation } from "react-i18next";
-import { TimerRowItem, TimerModal } from "../components";
+import { TimerRowItem, TimerModal, SearchInput } from "../components";
 
 export default function HomePage() {
   const { t } = useTranslation();
   const [modalOpen, setModalOpen] = useState(false);
   // TODO: update with react query code
   const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState("");
+
   const timer = {
     _id: 1,
     title: "Timer 1",
@@ -53,12 +55,18 @@ export default function HomePage() {
 
       <Layout>
         <Layout.Section>
-          <AlphaCard sectioned>
+          <Card sectioned>
             <Text variant="headingMd" as="h2">
               {t("HomePage.heading")}
             </Text>
+
+            <SearchInput
+              value={search}
+              onChange={setSearch}
+              placeholder="Search timers"
+            />
             <TimerRowItem timer={timer} />
-          </AlphaCard>
+          </Card>
         </Layout.Section>
       </Layout>
     </Page>

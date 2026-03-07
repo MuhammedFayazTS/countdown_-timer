@@ -5,8 +5,8 @@ import {
   Select,
   Text,
   Divider,
-  VerticalStack,
-  HorizontalStack,
+  BlockStack,
+  InlineStack,
 } from "@shopify/polaris";
 
 const defaultForm = {
@@ -89,10 +89,10 @@ export function TimerModal({ open, onClose, onSave, loading, editTimer }) {
   const handleSave = () => {
     if (!validate()) return;
     const startDate = new Date(
-      `${form.startDate}T${form.startTime || "00:00"}`
+      `${form.startDate}T${form.startTime || "00:00"}`,
     ).toISOString();
     const endDate = new Date(
-      `${form.endDate}T${form.endTime || "00:00"}`
+      `${form.endDate}T${form.endTime || "00:00"}`,
     ).toISOString();
     onSave({ ...form, startDate, endDate });
   };
@@ -128,7 +128,7 @@ export function TimerModal({ open, onClose, onSave, loading, editTimer }) {
       secondaryActions={[{ content: "Cancel", onAction: onClose }]}
     >
       <Modal.Section>
-        <VerticalStack gap="4">
+        <BlockStack gap="4">
           <TextField
             label="Timer name *"
             value={form.title}
@@ -138,7 +138,7 @@ export function TimerModal({ open, onClose, onSave, loading, editTimer }) {
             autoComplete="off"
           />
 
-          <HorizontalStack gap="3" align="start" blockAlign="start">
+          <InlineStack gap="3" align="start" blockAlign="start">
             <div style={{ flex: 1, minWidth: 0 }}>
               <TextField
                 label="Start date"
@@ -158,9 +158,9 @@ export function TimerModal({ open, onClose, onSave, loading, editTimer }) {
                 autoComplete="off"
               />
             </div>
-          </HorizontalStack>
+          </InlineStack>
 
-          <HorizontalStack gap="3" align="start" blockAlign="start">
+          <InlineStack gap="3" align="start" blockAlign="start">
             <div style={{ flex: 1, minWidth: 0 }}>
               <TextField
                 label="End date"
@@ -180,7 +180,7 @@ export function TimerModal({ open, onClose, onSave, loading, editTimer }) {
                 autoComplete="off"
               />
             </div>
-          </HorizontalStack>
+          </InlineStack>
 
           <TextField
             label="Promotion description"
@@ -193,11 +193,11 @@ export function TimerModal({ open, onClose, onSave, loading, editTimer }) {
 
           <Divider />
 
-          <VerticalStack gap="2">
+          <BlockStack gap="2">
             <Text variant="bodyMd" fontWeight="medium" as="p">
               Timer background color
             </Text>
-            <HorizontalStack gap="3" blockAlign="center">
+            <InlineStack gap="3" blockAlign="center">
               <input
                 type="color"
                 value={form.displayOptions.backgroundColor}
@@ -214,10 +214,10 @@ export function TimerModal({ open, onClose, onSave, loading, editTimer }) {
               <Text variant="bodyMd" as="p" tone="subdued">
                 {form.displayOptions.backgroundColor}
               </Text>
-            </HorizontalStack>
-          </VerticalStack>
+            </InlineStack>
+          </BlockStack>
 
-          <HorizontalStack gap="3" align="start" blockAlign="start">
+          <InlineStack gap="3" align="start" blockAlign="start">
             <div style={{ flex: 1, minWidth: 0 }}>
               <Select
                 label="Timer size"
@@ -234,7 +234,7 @@ export function TimerModal({ open, onClose, onSave, loading, editTimer }) {
                 onChange={(v) => setDisplay("position", v)}
               />
             </div>
-          </HorizontalStack>
+          </InlineStack>
 
           <Select
             label="Urgency notification"
@@ -242,7 +242,7 @@ export function TimerModal({ open, onClose, onSave, loading, editTimer }) {
             value={form.urgencySettings.type}
             onChange={(v) => setUrgency("type", v)}
           />
-        </VerticalStack>
+        </BlockStack>
       </Modal.Section>
     </Modal>
   );

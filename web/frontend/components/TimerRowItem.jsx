@@ -1,6 +1,6 @@
 import {
-  HorizontalStack,
-  VerticalStack,
+  InlineStack,
+  BlockStack,
   Text,
   Badge,
   Button,
@@ -27,11 +27,11 @@ export function TimerRowItem({
         })
       : "-";
 
-      // TODO: update ui as in the wireframe
+  // TODO: update ui as in the wireframe
   return (
-    <Box paddingBlock="400">
-      <HorizontalStack align="space-between" blockAlign="start" gap="2">
-        <VerticalStack gap="1">
+    <Box paddingBlock="4">
+      <InlineStack align="space-between" blockAlign="start" gap="2">
+        <BlockStack gap="1">
           <Text variant="bodyMd" fontWeight="semibold" as="p">
             {timer.title}
           </Text>
@@ -49,9 +49,9 @@ export function TimerRowItem({
           <Text variant="bodySm" tone="subdued" as="p">
             {t("End")}: {formatDate(timer.endDate)}
           </Text>
-        </VerticalStack>
+        </BlockStack>
 
-        <HorizontalStack gap="2" blockAlign="center">
+        <InlineStack gap="2" blockAlign="center">
           <Badge tone={timer.isActive ? "success" : "critical"}>
             {timer.isActive ? "Active" : "Inactive"}
           </Badge>
@@ -67,10 +67,10 @@ export function TimerRowItem({
           >
             {t("Delete")}
           </Button>
-        </HorizontalStack>
-      </HorizontalStack>
+        </InlineStack>
+      </InlineStack>
 
-      <Box paddingBlockStart="400">
+      <Box paddingBlockStart="4">
         <Divider />
       </Box>
     </Box>
