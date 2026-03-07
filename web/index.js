@@ -3,10 +3,12 @@ import { join } from "path";
 import { readFileSync } from "fs";
 import express from "express";
 import serveStatic from "serve-static";
+import mongoose from "mongoose";
 
 import shopify from "./shopify.js";
 import productCreator from "./product-creator.js";
 import PrivacyWebhookHandlers from "./privacy.js";
+import timerRoutes from "./routes/timer.routes.js";
 
 const PORT = parseInt(
   process.env.BACKEND_PORT || process.env.PORT || "3000",
@@ -19,6 +21,22 @@ const STATIC_PATH =
     : `${process.cwd()}/frontend/`;
 
 const app = express();
+
+// Connect Mongoose to the same MongoDB used by session storage
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  console.error("MONGODB_URI is not defined in environment variables");
+} else {
+  mongoose
+    .connect(MONGODB_URI, { dbName: "shopify_app" })
+    .then(() => {
+      console.log("Mongoose connected to MongoDB");
+    })
+    .catch((err) => {
+      console.error("Failed to connect Mongoose to MongoDB", err);
+    });
+}
 
 // Set up Shopify authentication and webhook handling
 app.get(shopify.config.auth.path, shopify.auth.begin());
@@ -68,6 +86,8 @@ app.post("/api/products", async (_req, res) => {
   }
   res.status(status).send({ success: status === 200, error });
 });
+
+app.use("/api/timers", timerRoutes);
 
 app.use(shopify.cspHeaders());
 app.use(serveStatic(STATIC_PATH, { index: false }));
