@@ -4,7 +4,7 @@ import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { useTranslation } from "react-i18next";
 import { TimerRowItem, TimerModal, SearchInput } from "../components";
 import { useFetchTimers } from "../hooks/queries/useTimerQueries";
-import { useCreateTimer } from "../hooks/mutations/useTimerMutations";
+import { useCreateTimer, useUpdateTimer } from "../hooks/mutations/useTimerMutations";
 
 export default function HomePage() {
   const { t } = useTranslation();
@@ -12,12 +12,13 @@ export default function HomePage() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [idForEdit, setIdForEdit] = useState(null);
 
   const { data, isLoading, isError } = useFetchTimers({
     search,
   });
 
-  const { mutate: createTimer, isPending: saving } = useCreateTimer({
+  const { mutate: createTimer, isPending: createPending } = useCreateTimer({
     onSuccess: () => {
       setModalOpen(false);
       shopify.toast.show(t("TimerModal.saveSuccess"));
@@ -27,14 +28,32 @@ export default function HomePage() {
     },
   });
 
+  const { mutate: updateTimer, isPending: updatePending } = useUpdateTimer({
+    onSuccess: () => {
+      setModalOpen(false);
+      shopify.toast.show(t("TimerModal.saveSuccess"));
+    },
+    onError: () => {
+      shopify.toast.show(t("TimerModal.saveError"), { isError: true });
+    },
+  });
+
+  const saving = createPending || updatePending
+
   const timers = data?.timers ?? [];
 
   const handleCreate = () => setModalOpen(true);
 
+  const handleCickEdit = (id) => {
+    setIdForEdit(id);
+    setModalOpen(true);
+  };
+
   const handleModalClose = () => setModalOpen(false);
 
-  const handleSave = (formData) => {
-    createTimer(formData);
+  const handleSave = (formData, id) => {
+    if(id) updateTimer({id, formData})
+    else createTimer(formData);
   };
 
   if (isError) {
@@ -55,7 +74,7 @@ export default function HomePage() {
         onClose={handleModalClose}
         onSave={handleSave}
         loading={saving}
-        editTimer={null}
+        id={idForEdit}
       />
       <TitleBar title={t("HomePage.title")} />
 
@@ -82,7 +101,11 @@ export default function HomePage() {
 
             {!isLoading &&
               timers.map((timer) => (
-                <TimerRowItem key={timer._id} timer={timer} />
+                <TimerRowItem
+                  key={timer._id}
+                  timer={timer}
+                  onEdit={handleCickEdit}
+                />
               ))}
           </Card>
         </Layout.Section>

@@ -1,23 +1,37 @@
 import { useMutation, useQueryClient } from "react-query";
-import { createTimer } from "../../services/timerApi";
+import { createTimer, updateTimer } from "../../services/timerApi";
+import { QUERY_KEYS } from "../../../constants/queryKeys";
 
 export const useCreateTimer = ({ onSuccess, onError } = {}) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (formData) => {
-      const response = await createTimer(formData);
+    mutationFn: createTimer,
 
-      if (!response.ok) {
-        throw new Error("Failed to save timer");
-      }
-
-      return response.json();
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries([QUERY_KEYS.TIMERS_LIST]);
+      onSuccess?.(data, variables, context);
     },
 
-    onSuccess: async (data, variables, context) => {
-      queryClient.invalidateQueries({ queryKey: ["timers"] });
+    onError: (error, variables, context) => {
+      console.error(error);
+      onError?.(error, variables, context);
+    },
+  });
+};
 
+export const useUpdateTimer = ({ onSuccess, onError } = {}) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateTimer,
+
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries([QUERY_KEYS.TIMERS_LIST]);
+      queryClient.setQueryData(
+        [QUERY_KEYS.GET_ONE_TIMER, variables.id],
+        data,
+      );
       onSuccess?.(data, variables, context);
     },
 

@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
 
 export function TimerRowItem({
   timer,
-  onEdit = () => {},
+  onEdit,
   onDelete = () => {},
 }) {
   const { t } = useTranslation();
@@ -56,7 +56,7 @@ export function TimerRowItem({
             {timer.isActive ? "Active" : "Inactive"}
           </Badge>
 
-          <Button size="slim" onClick={() => onEdit(timer)}>
+          <Button size="slim" onClick={() => onEdit(timer._id)}>
             {t("Edit")}
           </Button>
 

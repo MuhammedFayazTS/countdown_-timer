@@ -7,7 +7,10 @@ import {
   Divider,
   BlockStack,
   InlineStack,
+  Spinner,
 } from "@shopify/polaris";
+import { useFetchTimerById } from "../hooks/queries/useTimerQueries";
+import { useTranslation } from "react-i18next";
 
 const defaultForm = {
   title: "",
@@ -27,35 +30,41 @@ const defaultForm = {
 };
 
 // TODO: update with react hook form + zod
-export function TimerModal({ open, onClose, onSave, loading, editTimer }) {
+export function TimerModal({ open, onClose, onSave, loading, id }) {
+  const { t } = useTranslation();
+
   const [form, setForm] = useState(defaultForm);
   const [errors, setErrors] = useState({});
+  const { data: timerReponseData, isLoading, error } = useFetchTimerById(id);
 
   useEffect(() => {
-    if (editTimer) {
-      const start = editTimer.startDate ? new Date(editTimer.startDate) : null;
-      const end = editTimer.endDate ? new Date(editTimer.endDate) : null;
+    const timerDetails = timerReponseData?.timer;
+    if (timerDetails) {
+      const start = timerDetails.startDate
+        ? new Date(timerDetails.startDate)
+        : null;
+      const end = timerDetails.endDate ? new Date(timerDetails.endDate) : null;
       setForm({
         ...defaultForm,
-        ...editTimer,
+        ...timerDetails,
         startDate: start ? start.toISOString().split("T")[0] : "",
         startTime: start ? start.toTimeString().slice(0, 5) : "",
         endDate: end ? end.toISOString().split("T")[0] : "",
         endTime: end ? end.toTimeString().slice(0, 5) : "",
         displayOptions: {
           ...defaultForm.displayOptions,
-          ...(editTimer.displayOptions || {}),
+          ...(timerDetails.displayOptions || {}),
         },
         urgencySettings: {
           ...defaultForm.urgencySettings,
-          ...(editTimer.urgencySettings || {}),
+          ...(timerDetails.urgencySettings || {}),
         },
       });
     } else {
       setForm(defaultForm);
     }
     setErrors({});
-  }, [editTimer, open]);
+  }, [timerReponseData, open]);
 
   const set = (field, value) =>
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -94,7 +103,7 @@ export function TimerModal({ open, onClose, onSave, loading, editTimer }) {
     const endDate = new Date(
       `${form.endDate}T${form.endTime || "00:00"}`,
     ).toISOString();
-    onSave({ ...form, startDate, endDate });
+    onSave({ ...form, startDate, endDate }, id);
   };
 
   const sizeOptions = [
@@ -119,130 +128,141 @@ export function TimerModal({ open, onClose, onSave, loading, editTimer }) {
     <Modal
       open={open}
       onClose={onClose}
-      title={editTimer ? "Edit Timer" : "Create New Timer"}
+      title={timerReponseData ? "Edit Timer" : "Create New Timer"}
       primaryAction={{
-        content: editTimer ? "Save changes" : "Create timer",
+        content: timerReponseData ? "Save changes" : "Create timer",
         onAction: handleSave,
         loading,
       }}
       secondaryActions={[{ content: "Cancel", onAction: onClose }]}
     >
       <Modal.Section>
-        <BlockStack gap="4">
-          <TextField
-            label="Timer name *"
-            value={form.title}
-            onChange={(v) => set("title", v)}
-            placeholder="Enter timer name"
-            error={errors.title}
-            autoComplete="off"
-          />
-
-          <InlineStack gap="3" align="start" blockAlign="start">
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <TextField
-                label="Start date"
-                type="date"
-                value={form.startDate}
-                onChange={(v) => set("startDate", v)}
-                error={errors.startDate}
-                autoComplete="off"
-              />
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <TextField
-                label="Start time"
-                type="time"
-                value={form.startTime}
-                onChange={(v) => set("startTime", v)}
-                autoComplete="off"
-              />
-            </div>
-          </InlineStack>
-
-          <InlineStack gap="3" align="start" blockAlign="start">
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <TextField
-                label="End date"
-                type="date"
-                value={form.endDate}
-                onChange={(v) => set("endDate", v)}
-                error={errors.endDate}
-                autoComplete="off"
-              />
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <TextField
-                label="End time"
-                type="time"
-                value={form.endTime}
-                onChange={(v) => set("endTime", v)}
-                autoComplete="off"
-              />
-            </div>
-          </InlineStack>
-
-          <TextField
-            label="Promotion description"
-            value={form.description}
-            onChange={(v) => set("description", v)}
-            placeholder="Enter promotion details"
-            multiline={4}
-            autoComplete="off"
-          />
-
-          <Divider />
-
-          <BlockStack gap="2">
-            <Text variant="bodyMd" fontWeight="medium" as="p">
-              Timer background color
-            </Text>
-            <InlineStack gap="3" blockAlign="center">
-              <input
-                type="color"
-                value={form.displayOptions.backgroundColor}
-                onChange={(e) => setDisplay("backgroundColor", e.target.value)}
-                style={{
-                  width: "48px",
-                  height: "48px",
-                  border: "none",
-                  borderRadius: "8px",
-                  cursor: "pointer",
-                  padding: "2px",
-                }}
-              />
-              <Text variant="bodyMd" as="p" tone="subdued">
-                {form.displayOptions.backgroundColor}
-              </Text>
-            </InlineStack>
+        {isLoading ? (
+          <BlockStack gap="4" align="center" inlineAlign="center">
+            {/* <Text variant="bodyMd" as="p">
+              {t("TimerModal.loadingTimer")}
+            </Text> */}
+            <Spinner />
           </BlockStack>
+        ) : (
+          <BlockStack gap="4">
+            <TextField
+              label="Timer name *"
+              value={form.title}
+              onChange={(v) => set("title", v)}
+              placeholder="Enter timer name"
+              error={errors.title}
+              autoComplete="off"
+            />
 
-          <InlineStack gap="3" align="start" blockAlign="start">
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <Select
-                label="Timer size"
-                options={sizeOptions}
-                value={form.displayOptions.fontSize}
-                onChange={(v) => setDisplay("fontSize", v)}
-              />
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <Select
-                label="Timer position"
-                options={positionOptions}
-                value={form.displayOptions.position}
-                onChange={(v) => setDisplay("position", v)}
-              />
-            </div>
-          </InlineStack>
+            <InlineStack gap="3" align="start" blockAlign="start">
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <TextField
+                  label="Start date"
+                  type="date"
+                  value={form.startDate}
+                  onChange={(v) => set("startDate", v)}
+                  error={errors.startDate}
+                  autoComplete="off"
+                />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <TextField
+                  label="Start time"
+                  type="time"
+                  value={form.startTime}
+                  onChange={(v) => set("startTime", v)}
+                  autoComplete="off"
+                />
+              </div>
+            </InlineStack>
 
-          <Select
-            label="Urgency notification"
-            options={urgencyOptions}
-            value={form.urgencySettings.type}
-            onChange={(v) => setUrgency("type", v)}
-          />
-        </BlockStack>
+            <InlineStack gap="3" align="start" blockAlign="start">
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <TextField
+                  label="End date"
+                  type="date"
+                  value={form.endDate}
+                  onChange={(v) => set("endDate", v)}
+                  error={errors.endDate}
+                  autoComplete="off"
+                />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <TextField
+                  label="End time"
+                  type="time"
+                  value={form.endTime}
+                  onChange={(v) => set("endTime", v)}
+                  autoComplete="off"
+                />
+              </div>
+            </InlineStack>
+
+            <TextField
+              label="Promotion description"
+              value={form.description}
+              onChange={(v) => set("description", v)}
+              placeholder="Enter promotion details"
+              multiline={4}
+              autoComplete="off"
+            />
+
+            <Divider />
+
+            <BlockStack gap="2">
+              <Text variant="bodyMd" fontWeight="medium" as="p">
+                Timer background color
+              </Text>
+              <InlineStack gap="3" blockAlign="center">
+                <input
+                  type="color"
+                  value={form.displayOptions.backgroundColor}
+                  onChange={(e) =>
+                    setDisplay("backgroundColor", e.target.value)
+                  }
+                  style={{
+                    width: "48px",
+                    height: "48px",
+                    border: "none",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    padding: "2px",
+                  }}
+                />
+                <Text variant="bodyMd" as="p" tone="subdued">
+                  {form.displayOptions.backgroundColor}
+                </Text>
+              </InlineStack>
+            </BlockStack>
+
+            <InlineStack gap="3" align="start" blockAlign="start">
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <Select
+                  label="Timer size"
+                  options={sizeOptions}
+                  value={form.displayOptions.fontSize}
+                  onChange={(v) => setDisplay("fontSize", v)}
+                />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <Select
+                  label="Timer position"
+                  options={positionOptions}
+                  value={form.displayOptions.position}
+                  onChange={(v) => setDisplay("position", v)}
+                />
+              </div>
+            </InlineStack>
+
+            <Select
+              label="Urgency notification"
+              options={urgencyOptions}
+              value={form.urgencySettings.type}
+              onChange={(v) => setUrgency("type", v)}
+            />
+          </BlockStack>
+        )}
       </Modal.Section>
     </Modal>
   );

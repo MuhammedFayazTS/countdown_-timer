@@ -15,12 +15,54 @@ export const fetchTimers = async (search = "") => {
   return await response.json();
 };
 
+export const fetchTimerById = async (id) => {
+  if (!id) {
+    throw new Error("Invalid id for timer");
+  }
+
+  const response = await fetch(`/api/timers/${id}`);
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch timer");
+  }
+
+  return await response.json();
+};
+
 export const createTimer = async (formData) => {
-  return await fetch("/api/timers", {
+  const response = await fetch("/api/timers", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(formData),
   });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data?.message || "Failed to create timer");
+  }
+
+  return data;
+};
+
+export const updateTimer = async ({ id, formData }) => {
+  if (!id) throw new Error("Invalid id for timer");
+
+  const response = await fetch(`/api/timers/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(formData),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data?.message || "Failed to update timer");
+  }
+
+  return data;
 };
