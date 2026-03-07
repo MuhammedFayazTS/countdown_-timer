@@ -66,3 +66,22 @@ export const updateTimer = async ({ id, formData }) => {
 
   return data;
 };
+
+export const deleteTimer = async (id) => {
+  if (!id) throw new Error("Invalid id for timer");
+
+  const response = await fetch(`/api/timers/${id}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data?.message || "Failed to delete timer");
+  }
+
+  return data;
+};

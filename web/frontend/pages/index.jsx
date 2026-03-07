@@ -4,7 +4,7 @@ import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { useTranslation } from "react-i18next";
 import { TimerRowItem, TimerModal, SearchInput } from "../components";
 import { useFetchTimers } from "../hooks/queries/useTimerQueries";
-import { useCreateTimer, useUpdateTimer } from "../hooks/mutations/useTimerMutations";
+import { useCreateTimer, useDeleteTimer, useUpdateTimer } from "../hooks/mutations/useTimerMutations";
 
 export default function HomePage() {
   const { t } = useTranslation();
@@ -38,7 +38,16 @@ export default function HomePage() {
     },
   });
 
-  const saving = createPending || updatePending
+  const { mutate: deleteTimer, isPending: deletePending } = useDeleteTimer({
+    onSuccess: () => {
+      shopify.toast.show(t("HomePage.deleteSuccess"));
+    },
+    onError: () => {
+      shopify.toast.show(t("HomePage.deleteError"), { isError: true });
+    },
+  });
+
+  const saving = createPending || updatePending || deletePending
 
   const timers = data?.timers ?? [];
 
@@ -105,6 +114,7 @@ export default function HomePage() {
                   key={timer._id}
                   timer={timer}
                   onEdit={handleCickEdit}
+                  onDelete={deleteTimer}
                 />
               ))}
           </Card>

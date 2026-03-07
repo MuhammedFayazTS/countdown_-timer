@@ -7,7 +7,9 @@
     "trophyAltText": "Nice work on building a Shopify app",
     "yourAppIsReadyToExplore": "Your app is ready to explore! It contains everything you need to get started including the <PolarisLink>Polaris design system</PolarisLink>, <AdminApiLink>Shopify Admin API</AdminApiLink>, and <AppBridgeLink>App Bridge</AppBridgeLink> UI library and components.",
     "noTimers": "No timers found",
-    "loadingTimers": "Timers loading"
+    "loadingTimers": "Timers loading",
+    "deleteSuccess": "Delete timer successful",
+    "deleteError": "Delete timer failed"
   },
   "TimerModal": {
     "loadingTimer": "Timer Loading",
