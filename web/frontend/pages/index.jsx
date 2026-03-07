@@ -1,39 +1,45 @@
 import { useState } from "react";
 import { Page, Layout, Text, Card } from "@shopify/polaris";
-import { TitleBar } from "@shopify/app-bridge-react";
+import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { useTranslation } from "react-i18next";
 import { TimerRowItem, TimerModal, SearchInput } from "../components";
+import { useFetchTimers } from "../hooks/queries/useTimerQueries";
+import { useCreateTimer } from "../hooks/mutations/useTimerMutations";
 
 export default function HomePage() {
   const { t } = useTranslation();
+  const shopify = useAppBridge();
+
   const [modalOpen, setModalOpen] = useState(false);
-  // TODO: update with react query code
-  const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
 
-  const timer = {
-    _id: 1,
-    title: "Timer 1",
-    description: "Example countdown timer",
-    startDate: "2026-01-01",
-    endDate: "2026-01-01",
-    isActive: true,
-  };
+  const { data, isLoading, isError } = useFetchTimers({
+    search,
+  });
+
+  const { mutate: createTimer, isPending: saving } = useCreateTimer({
+    onSuccess: () => {
+      setModalOpen(false);
+      shopify.toast.show(t("TimerModal.saveSuccess"));
+    },
+    onError: () => {
+      shopify.toast.show(t("TimerModal.saveError"), { isError: true });
+    },
+  });
+
+  const timers = data?.timers ?? [];
 
   const handleCreate = () => setModalOpen(true);
 
   const handleModalClose = () => setModalOpen(false);
 
-  const handleSave = async (data) => {
-    setSaving(true);
-    try {
-      // TODO: API call to save timer
-      console.log("Save timer:", data);
-      setModalOpen(false);
-    } finally {
-      setSaving(false);
-    }
+  const handleSave = (formData) => {
+    createTimer(formData);
   };
+
+  if (isError) {
+    shopify.toast.show(t("HomePage.loadError"), { isError: true });
+  }
 
   return (
     <Page
@@ -56,16 +62,28 @@ export default function HomePage() {
       <Layout>
         <Layout.Section>
           <Card sectioned>
-            <Text variant="headingMd" as="h2">
-              {t("HomePage.heading")}
-            </Text>
-
             <SearchInput
               value={search}
               onChange={setSearch}
               placeholder="Search timers"
             />
-            <TimerRowItem timer={timer} />
+
+            {isLoading && (
+              <Text variant="bodyMd" as="p">
+                {t("HomePage.loadingTimers")}
+              </Text>
+            )}
+
+            {!isLoading && timers.length === 0 && (
+              <Text variant="bodyMd" as="p">
+                {t("HomePage.noTimers")}
+              </Text>
+            )}
+
+            {!isLoading &&
+              timers.map((timer) => (
+                <TimerRowItem key={timer._id} timer={timer} />
+              ))}
           </Card>
         </Layout.Section>
       </Layout>
