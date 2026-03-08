@@ -21,7 +21,7 @@ importers:
         version: 5.0.5(@shopify/shopify-api@12.3.0)(@shopify/shopify-app-session-storage@3.0.20(@shopify/shopify-api@11.14.1(encoding@0.1.13)))(socks@2.8.7)
       '@shopify/shopify-app-session-storage-sqlite':
         specifier: ^4.0.8
-        version: 4.0.20(@shopify/shopify-api@12.3.0)(@shopify/shopify-app-session-storage@3.0.20(@shopify/shopify-api@11.14.1(encoding@0.1.13)))
+        version: 4.0.20(@shopify/shopify-api@12.3.0)(@shopify/shopify-app-session-storage@3.0.20(@shopify/shopify-api@12.3.0))
       compression:
         specifier: ^1.7.4
         version: 1.8.1
@@ -40,6 +40,9 @@ importers:
       serve-static:
         specifier: ^1.14.1
         version: 1.16.3
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
     devDependencies:
       nodemon:
         specifier: ^2.0.15
@@ -3305,7 +3308,7 @@ snapshots:
       - snappy
       - socks
 
-  '@shopify/shopify-app-session-storage-sqlite@4.0.20(@shopify/shopify-api@12.3.0)(@shopify/shopify-app-session-storage@3.0.20(@shopify/shopify-api@11.14.1(encoding@0.1.13)))':
+  '@shopify/shopify-app-session-storage-sqlite@4.0.20(@shopify/shopify-api@12.3.0)(@shopify/shopify-app-session-storage@3.0.20(@shopify/shopify-api@12.3.0))':
     dependencies:
       '@shopify/shopify-api': 12.3.0
       '@shopify/shopify-app-session-storage': 3.0.20(@shopify/shopify-api@11.14.1(encoding@0.1.13))
