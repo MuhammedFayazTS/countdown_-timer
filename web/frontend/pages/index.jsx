@@ -1,10 +1,14 @@
 import { useState } from "react";
-import { Page, Layout, Text, Card } from "@shopify/polaris";
+import { Page, Layout, Text, Card, BlockStack } from "@shopify/polaris";
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { useTranslation } from "react-i18next";
 import { TimerRowItem, TimerModal, SearchInput } from "../components";
 import { useFetchTimers } from "../hooks/queries/useTimerQueries";
-import { useCreateTimer, useDeleteTimer, useUpdateTimer } from "../hooks/mutations/useTimerMutations";
+import {
+  useCreateTimer,
+  useDeleteTimer,
+  useUpdateTimer,
+} from "../hooks/mutations/useTimerMutations";
 
 export default function HomePage() {
   const { t } = useTranslation();
@@ -47,7 +51,7 @@ export default function HomePage() {
     },
   });
 
-  const saving = createPending || updatePending || deletePending
+  const saving = createPending || updatePending || deletePending;
 
   const timers = data?.timers ?? [];
 
@@ -58,10 +62,13 @@ export default function HomePage() {
     setModalOpen(true);
   };
 
-  const handleModalClose = () => setModalOpen(false);
+  const handleModalClose = () => {
+    setModalOpen(false);
+    setIdForEdit(null);
+  };
 
   const handleSave = (formData, id) => {
-    if(id) updateTimer({id, formData})
+    if (id) updateTimer({ id, formData });
     else createTimer(formData);
   };
 
@@ -90,33 +97,37 @@ export default function HomePage() {
       <Layout>
         <Layout.Section>
           <Card sectioned>
-            <SearchInput
-              value={search}
-              onChange={setSearch}
-              placeholder="Search timers"
-            />
+            <BlockStack gap={"300"}>
+              <SearchInput
+                value={search}
+                onChange={setSearch}
+                placeholder="Search timers"
+              />
 
-            {isLoading && (
-              <Text variant="bodyMd" as="p">
-                {t("HomePage.loadingTimers")}
-              </Text>
-            )}
+              {isLoading && (
+                <Text variant="bodyMd" as="p">
+                  {t("HomePage.loadingTimers")}
+                </Text>
+              )}
 
-            {!isLoading && timers.length === 0 && (
-              <Text variant="bodyMd" as="p">
-                {t("HomePage.noTimers")}
-              </Text>
-            )}
+              {!isLoading && timers.length === 0 && (
+                <Text variant="bodyMd" as="p">
+                  {t("HomePage.noTimers")}
+                </Text>
+              )}
 
-            {!isLoading &&
-              timers.map((timer) => (
-                <TimerRowItem
-                  key={timer._id}
-                  timer={timer}
-                  onEdit={handleCickEdit}
-                  onDelete={deleteTimer}
-                />
-              ))}
+              <BlockStack gap={"400"}>
+                {!isLoading &&
+                  timers.map((timer) => (
+                    <TimerRowItem
+                      key={timer._id}
+                      timer={timer}
+                      onEdit={handleCickEdit}
+                      onDelete={deleteTimer}
+                    />
+                  ))}
+              </BlockStack>
+            </BlockStack>
           </Card>
         </Layout.Section>
       </Layout>

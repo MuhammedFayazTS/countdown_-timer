@@ -1,9 +1,6 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import {
   Modal,
-  TextField,
-  Select,
-  Text,
   Divider,
   BlockStack,
   InlineStack,
@@ -11,6 +8,13 @@ import {
 } from "@shopify/polaris";
 import { useFetchTimerById } from "../hooks/queries/useTimerQueries";
 import { useTranslation } from "react-i18next";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { timerSchema } from "../../validators/timer.schema";
+
+import { FormTextField } from "../components/common/FormTextField";
+import { FormSelect } from "../components/common/FormSelect";
+import { FormColorPicker } from "../components/common/FormColorPicker";
 
 const defaultForm = {
   title: "",
@@ -29,22 +33,27 @@ const defaultForm = {
   },
 };
 
-// TODO: update with react hook form + zod
 export function TimerModal({ open, onClose, onSave, loading, id }) {
   const { t } = useTranslation();
 
-  const [form, setForm] = useState(defaultForm);
-  const [errors, setErrors] = useState({});
-  const { data: timerReponseData, isLoading, error } = useFetchTimerById(id);
+  const { control, handleSubmit, reset } = useForm({
+    resolver: zodResolver(timerSchema),
+    defaultValues: defaultForm,
+  });
+
+  const { data: timerReponseData, isLoading } = useFetchTimerById(id);
 
   useEffect(() => {
     const timerDetails = timerReponseData?.timer;
+
     if (timerDetails) {
       const start = timerDetails.startDate
         ? new Date(timerDetails.startDate)
         : null;
+
       const end = timerDetails.endDate ? new Date(timerDetails.endDate) : null;
-      setForm({
+
+      reset({
         ...defaultForm,
         ...timerDetails,
         startDate: start ? start.toISOString().split("T")[0] : "",
@@ -61,49 +70,30 @@ export function TimerModal({ open, onClose, onSave, loading, id }) {
         },
       });
     } else {
-      setForm(defaultForm);
+      reset(defaultForm);
     }
-    setErrors({});
-  }, [timerReponseData, open]);
+    return () => {
+      reset(defaultForm);
+    };
+  }, [timerReponseData, open, reset]);
 
-  const set = (field, value) =>
-    setForm((prev) => ({ ...prev, [field]: value }));
-
-  const setDisplay = (key, value) =>
-    setForm((prev) => ({
-      ...prev,
-      displayOptions: { ...prev.displayOptions, [key]: value },
-    }));
-
-  const setUrgency = (key, value) =>
-    setForm((prev) => ({
-      ...prev,
-      urgencySettings: { ...prev.urgencySettings, [key]: value },
-    }));
-
-  const validate = () => {
-    const errs = {};
-    if (!form.title.trim()) errs.title = "Timer name is required";
-    if (!form.startDate) errs.startDate = "Start date is required";
-    if (!form.endDate) errs.endDate = "End date is required";
-    if (form.startDate && form.endDate) {
-      const start = new Date(`${form.startDate}T${form.startTime || "00:00"}`);
-      const end = new Date(`${form.endDate}T${form.endTime || "00:00"}`);
-      if (end <= start) errs.endDate = "End must be after start";
-    }
-    setErrors(errs);
-    return Object.keys(errs).length === 0;
-  };
-
-  const handleSave = () => {
-    if (!validate()) return;
+  const onSubmit = (data) => {
     const startDate = new Date(
-      `${form.startDate}T${form.startTime || "00:00"}`,
+      `${data.startDate}T${data.startTime || "00:00"}`,
     ).toISOString();
+
     const endDate = new Date(
-      `${form.endDate}T${form.endTime || "00:00"}`,
+      `${data.endDate}T${data.endTime || "00:00"}`,
     ).toISOString();
-    onSave({ ...form, startDate, endDate }, id);
+
+    onSave(
+      {
+        ...data,
+        startDate,
+        endDate,
+      },
+      id,
+    );
   };
 
   const sizeOptions = [
@@ -131,135 +121,104 @@ export function TimerModal({ open, onClose, onSave, loading, id }) {
       title={timerReponseData ? "Edit Timer" : "Create New Timer"}
       primaryAction={{
         content: timerReponseData ? "Save changes" : "Create timer",
-        onAction: handleSave,
+        onAction: handleSubmit(onSubmit),
         loading,
       }}
       secondaryActions={[{ content: "Cancel", onAction: onClose }]}
     >
       <Modal.Section>
         {isLoading ? (
-          <BlockStack gap="4" align="center" inlineAlign="center">
-            {/* <Text variant="bodyMd" as="p">
-              {t("TimerModal.loadingTimer")}
-            </Text> */}
+          <BlockStack gap="400" align="center" inlineAlign="center">
             <Spinner />
           </BlockStack>
         ) : (
-          <BlockStack gap="4">
-            <TextField
+          <BlockStack gap="400">
+            <FormTextField
+              name="title"
+              control={control}
               label="Timer name *"
-              value={form.title}
-              onChange={(v) => set("title", v)}
-              placeholder="Enter timer name"
-              error={errors.title}
-              autoComplete="off"
             />
 
-            <InlineStack gap="3" align="start" blockAlign="start">
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <TextField
+            <InlineStack gap="300">
+              <div style={{ flex: 1 }}>
+                <FormTextField
+                  name="startDate"
+                  control={control}
                   label="Start date"
                   type="date"
-                  value={form.startDate}
-                  onChange={(v) => set("startDate", v)}
-                  error={errors.startDate}
-                  autoComplete="off"
                 />
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <TextField
+
+              <div style={{ flex: 1 }}>
+                <FormTextField
+                  name="startTime"
+                  control={control}
                   label="Start time"
                   type="time"
-                  value={form.startTime}
-                  onChange={(v) => set("startTime", v)}
-                  autoComplete="off"
                 />
               </div>
             </InlineStack>
 
-            <InlineStack gap="3" align="start" blockAlign="start">
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <TextField
+            <InlineStack gap="300">
+              <div style={{ flex: 1 }}>
+                <FormTextField
+                  name="endDate"
+                  control={control}
                   label="End date"
                   type="date"
-                  value={form.endDate}
-                  onChange={(v) => set("endDate", v)}
-                  error={errors.endDate}
-                  autoComplete="off"
                 />
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <TextField
+
+              <div style={{ flex: 1 }}>
+                <FormTextField
+                  name="endTime"
+                  control={control}
                   label="End time"
                   type="time"
-                  value={form.endTime}
-                  onChange={(v) => set("endTime", v)}
-                  autoComplete="off"
                 />
               </div>
             </InlineStack>
 
-            <TextField
+            <FormTextField
+              name="description"
+              control={control}
               label="Promotion description"
-              value={form.description}
-              onChange={(v) => set("description", v)}
-              placeholder="Enter promotion details"
               multiline={4}
-              autoComplete="off"
             />
 
             <Divider />
 
-            <BlockStack gap="2">
-              <Text variant="bodyMd" fontWeight="medium" as="p">
-                Timer background color
-              </Text>
-              <InlineStack gap="3" blockAlign="center">
-                <input
-                  type="color"
-                  value={form.displayOptions.backgroundColor}
-                  onChange={(e) =>
-                    setDisplay("backgroundColor", e.target.value)
-                  }
-                  style={{
-                    width: "48px",
-                    height: "48px",
-                    border: "none",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                    padding: "2px",
-                  }}
-                />
-                <Text variant="bodyMd" as="p" tone="subdued">
-                  {form.displayOptions.backgroundColor}
-                </Text>
-              </InlineStack>
-            </BlockStack>
+            <FormColorPicker
+              name="displayOptions.backgroundColor"
+              control={control}
+              label="Timer background color"
+            />
 
-            <InlineStack gap="3" align="start" blockAlign="start">
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <Select
+            <InlineStack gap="300">
+              <div style={{ flex: 1 }}>
+                <FormSelect
+                  name="displayOptions.fontSize"
+                  control={control}
                   label="Timer size"
                   options={sizeOptions}
-                  value={form.displayOptions.fontSize}
-                  onChange={(v) => setDisplay("fontSize", v)}
                 />
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <Select
+
+              <div style={{ flex: 1 }}>
+                <FormSelect
+                  name="displayOptions.position"
+                  control={control}
                   label="Timer position"
                   options={positionOptions}
-                  value={form.displayOptions.position}
-                  onChange={(v) => setDisplay("position", v)}
                 />
               </div>
             </InlineStack>
 
-            <Select
+            <FormSelect
+              name="urgencySettings.type"
+              control={control}
               label="Urgency notification"
               options={urgencyOptions}
-              value={form.urgencySettings.type}
-              onChange={(v) => setUrgency("type", v)}
             />
           </BlockStack>
         )}

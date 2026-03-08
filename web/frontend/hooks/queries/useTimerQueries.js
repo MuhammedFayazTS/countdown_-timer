@@ -1,6 +1,6 @@
 import { useQuery } from "react-query";
 import { fetchTimerById, fetchTimers } from "../../services/timerApi";
-import { QUERY_KEYS } from "../../../constants/queryKeys";
+import { QUERY_KEYS } from "../../constants/queryKeys";
 
 export const useFetchTimers = ({ search = "" }) => {
   return useQuery({

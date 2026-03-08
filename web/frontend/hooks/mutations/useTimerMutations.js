@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "react-query";
 import { createTimer, deleteTimer, updateTimer } from "../../services/timerApi";
-import { QUERY_KEYS } from "../../../constants/queryKeys";
+import { QUERY_KEYS } from "../../constants/queryKeys";
 
 export const useCreateTimer = ({ onSuccess, onError } = {}) => {
   const queryClient = useQueryClient();

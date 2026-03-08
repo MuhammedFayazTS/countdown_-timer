@@ -6,15 +6,19 @@ import {
   Button,
   Box,
   Divider,
+  Popover,
+  ActionList,
 } from "@shopify/polaris";
+import { MenuHorizontalIcon } from "@shopify/polaris-icons";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { getTimerStatus } from "../utils/timerUtils";
 
-export function TimerRowItem({
-  timer,
-  onEdit,
-  onDelete = () => {},
-}) {
+export function TimerRowItem({ timer, onEdit, onDelete = () => {} }) {
   const { t } = useTranslation();
+  const [active, setActive] = useState(false);
+
+  const togglePopover = () => setActive((prev) => !prev);
 
   const formatDate = (d) =>
     d
@@ -27,11 +31,22 @@ export function TimerRowItem({
         })
       : "-";
 
-  // TODO: update ui as in the wireframe
+  const activator = (
+    <Button
+      icon={MenuHorizontalIcon}
+      variant="tertiary"
+      size="slim"
+      onClick={togglePopover}
+      accessibilityLabel="More actions"
+    />
+  );
+
+  const status = getTimerStatus(timer);
+
   return (
     <Box paddingBlock="4">
-      <InlineStack align="space-between" blockAlign="start" gap="2">
-        <BlockStack gap="1">
+      <InlineStack align="space-between" blockAlign="start" gap="200">
+        <BlockStack gap="100">
           <Text variant="bodyMd" fontWeight="semibold" as="p">
             {timer.title}
           </Text>
@@ -51,26 +66,32 @@ export function TimerRowItem({
           </Text>
         </BlockStack>
 
-        <InlineStack gap="2" blockAlign="center">
-          <Badge tone={timer.isActive ? "success" : "critical"}>
-            {timer.isActive ? "Active" : "Inactive"}
-          </Badge>
-
-          <Button size="slim" onClick={() => onEdit(timer._id)}>
-            {t("Edit")}
-          </Button>
-
-          <Button
-            size="slim"
-            tone="critical"
-            onClick={() => onDelete(timer._id)}
+        <InlineStack gap="300" blockAlign="center">
+          <Badge tone={status.tone}>{status.label}</Badge>
+          <Popover
+            active={active}
+            activator={activator}
+            autofocusTarget="first-node"
+            onClose={togglePopover}
           >
-            {t("Delete")}
-          </Button>
+            <ActionList
+              items={[
+                {
+                  content: t("Edit"),
+                  onAction: () => onEdit(timer._id),
+                },
+                {
+                  content: t("Delete"),
+                  tone: "critical",
+                  onAction: () => onDelete(timer._id),
+                },
+              ]}
+            />
+          </Popover>
         </InlineStack>
       </InlineStack>
 
-      <Box paddingBlockStart="4">
+      <Box paddingBlockStart="400">
         <Divider />
       </Box>
     </Box>

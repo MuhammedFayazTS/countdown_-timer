@@ -15,7 +15,7 @@ export function SearchInput({
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-    //   prefix={SearchIcon}
+      //   prefix={SearchIcon}
       autoComplete="off"
       clearButton
       onClearButtonClick={() => onChange("")}
