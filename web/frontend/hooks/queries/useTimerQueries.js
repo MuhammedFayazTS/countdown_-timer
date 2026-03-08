@@ -2,10 +2,10 @@ import { useQuery } from "react-query";
 import { fetchTimerById, fetchTimers } from "../../services/timerApi";
 import { QUERY_KEYS } from "../../constants/queryKeys";
 
-export const useFetchTimers = ({ search = "" }) => {
+export const useFetchTimers = ({ search = "", sort = "asc", shouldHideExpired = false }) => {
   return useQuery({
-    queryKey: [QUERY_KEYS.TIMERS_LIST, search],
-    queryFn: () => fetchTimers(search),
+    queryKey: [QUERY_KEYS.TIMERS_LIST, search, sort, shouldHideExpired],
+    queryFn: () => fetchTimers(search, sort, shouldHideExpired),
     refetchOnWindowFocus: false,
   });
 };

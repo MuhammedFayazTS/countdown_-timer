@@ -1,5 +1,15 @@
 import { useState } from "react";
-import { Page, Layout, Text, Card, BlockStack } from "@shopify/polaris";
+import {
+  Page,
+  Layout,
+  Text,
+  Card,
+  BlockStack,
+  Select,
+  InlineStack,
+  Checkbox,
+  SkeletonBodyText,
+} from "@shopify/polaris";
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { useTranslation } from "react-i18next";
 import { TimerRowItem, TimerModal, SearchInput } from "../components";
@@ -16,10 +26,14 @@ export default function HomePage() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [sort, setSort] = useState("asc");
+  const [shouldHideExpired, setShouldHideExpired] = useState(false);
   const [idForEdit, setIdForEdit] = useState(null);
 
   const { data, isLoading, isError } = useFetchTimers({
     search,
+    sort,
+    shouldHideExpired,
   });
 
   const { mutate: createTimer, isPending: createPending } = useCreateTimer({
@@ -103,11 +117,37 @@ export default function HomePage() {
                 onChange={setSearch}
                 placeholder="Search timers"
               />
+              <InlineStack gap="300" align="space-between">
+                <div style={{ flex: 1 }}>
+                  <Checkbox
+                    label="Hide expired timers"
+                    checked={shouldHideExpired}
+                    onChange={setShouldHideExpired}
+                  />
+                </div>
+
+                <div style={{ width: 220 }}>
+                  <Select
+                    label="Sort by"
+                    labelHidden
+                    value={sort}
+                    onChange={setSort}
+                    options={[
+                      { label: "Expiring first", value: "asc" },
+                      { label: "Expiring last", value: "desc" },
+                    ]}
+                  />
+                </div>
+              </InlineStack>
 
               {isLoading && (
-                <Text variant="bodyMd" as="p">
-                  {t("HomePage.loadingTimers")}
-                </Text>
+                <BlockStack gap="400">
+                  {Array.from({ length: 3 }).map((_, index) => (
+                    <Card key={index}>
+                      <SkeletonBodyText lines={3} />
+                    </Card>
+                  ))}
+                </BlockStack>
               )}
 
               {!isLoading && timers.length === 0 && (

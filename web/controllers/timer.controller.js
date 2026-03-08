@@ -4,14 +4,18 @@ const getShop = (req, res) => res.locals.shopify.session.shop;
 
 export async function getTimers(req, res) {
   const shop = getShop(req, res);
-  const { search = "" } = req.query;
+  const { search = "", sort = "asc", shouldHideExpired = false } = req.query;
   const searchStr = typeof search === "string" ? search.trim() : "";
   try {
     const filter = { shop };
+    const sortDirection = sort === "desc" ? -1 : 1;
     if (searchStr) {
       filter.title = { $regex: searchStr, $options: "i" };
     }
-    const timers = await Timer.find(filter).sort({ createdAt: -1 });
+    if (shouldHideExpired) {
+      filter.endDate = { $gte: new Date() };
+    }
+    const timers = await Timer.find(filter).sort({ endDate: sortDirection });
     res.json({ timers });
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -1,7 +1,15 @@
-export const fetchTimers = async (search = "") => {
+export const fetchTimers = async (search = "", sort = "asc", shouldHideExpired = false) => {
   const params = new URLSearchParams();
   if (search) {
     params.set("search", search);
+  }
+
+  if (sort) {
+    params.set("sort", sort);
+  }
+
+  if (shouldHideExpired) {
+    params.set("shouldHideExpired", shouldHideExpired);
   }
 
   const response = await fetch(
