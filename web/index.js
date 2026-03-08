@@ -51,7 +51,18 @@ app.post(
   shopify.processWebhooks({ webhookHandlers: PrivacyWebhookHandlers })
 );
 
+// ── Widget API (public, no auth needed) ──
+// CORS so storefront JS can call these endpoints
+app.use("/api/widget", (req, res, next) => {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.set("Access-Control-Allow-Headers", "Content-Type");
+  if (req.method === "OPTIONS") return res.sendStatus(204);
+  next();
+});
 app.use("/api/widget", widgetRoutes);
+// Shopify App Proxy path
+app.use("/proxy/widget", widgetRoutes);
 
 // If you are adding routes outside of the /api path, remember to
 // also add a proxy rule for them in web/frontend/vite.config.js
