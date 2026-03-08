@@ -39,11 +39,6 @@ function toWidgetTimer(doc) {
   };
 }
 
-/**
- * GET /api/widget/active?shop=myshop.myshopify.com
- * Returns the single currently active timer for the store (scheduled: within start/end, isActive).
- * Used by the storefront widget to show countdown on the product page.
- */
 export async function getActiveTimer(req, res) {
   const rawShop = req.query.shop;
   const shop = normalizeShop(rawShop);
@@ -66,12 +61,38 @@ export async function getActiveTimer(req, res) {
   }
 }
 
-/**
- * GET /api/widget/timer/:id?shop=myshop.myshopify.com
- * Returns a specific timer by id for the store, only if it is currently active
- * (within start/end and isActive). Used when the theme shows one timer per product.
- */
-export async function getTimerById(req, res) {
+export async function getActiveTimers(req, res) {
+  const rawShop = req.query.shop;
+  const limit = req.query.limit ? parseInt(req.query.limit, 25) : 0;
+  const shop = normalizeShop(rawShop);
+  if (!shop) {
+    return res.status(400).json({ error: "Missing or invalid shop parameter" });
+  }
+
+  try {
+    const now = new Date();
+    let query = Timer.find({
+      shop,
+      isActive: true,
+      startDate: { $lte: now },
+      endDate: { $gte: now },
+    })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    if (limit > 0) {
+      query = query.limit(limit);
+    }
+
+    const timers = await query;
+
+    return res.json({ timers: timers.map(toWidgetTimer) });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+export async function getTimerByIdForStore(req, res) {
   const { id } = req.params;
   const rawShop = req.query.shop;
   const shop = normalizeShop(rawShop);
