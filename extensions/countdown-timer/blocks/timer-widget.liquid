@@ -1,0 +1,14 @@
+<div id="timer-widget-root"
+     data-shop="{{ shop.permanent_domain }}"
+     data-shop-url="{{ shop.url }}">
+</div>
+
+{% schema %}
+{
+  "name": "Countdown Timer",
+  "target": "section",
+  "javascript": "countdown-timer.iife.js",
+  "stylesheet": "timer-widget.css",
+  "settings": []
+}
+{% endschema %}
